@@ -48,7 +48,7 @@ def read_sample(filepath, N_A, N_B):
     with open(filepath, 'r') as f:
         lines = [line.strip() for line in f if line.strip()]
 
-    parts = lines[0].split()
+    parts = lines[0].split(',')
     N_s = int(parts[0])
     N_samps = int(parts[1])
     N_D = N_s - N_A - N_B
@@ -59,32 +59,22 @@ def read_sample(filepath, N_A, N_B):
     idx = 1
     for s in range(N_samps):
         for i in range(N_A):
-            A_samps[s, i] = [float(x) for x in lines[idx].split()]
+            A_samps[s, i] = [float(x) for x in lines[idx].split(',')]
             idx += 1
         for j in range(N_B):
-            B_samps[s, j] = [float(x) for x in lines[idx].split()]
+            B_samps[s, j] = [float(x) for x in lines[idx].split(',')]
             idx += 1
         for _ in range(N_D):
             idx += 1
 
     return A_samps, B_samps, N_s, N_samps
 
-    import numpy as np
-
 def write_output(filename, D, C):
     N_samps = len(D)
     with open(filename, "w") as f:
-        f.write(f"{N_samps} \"{filename}\"\n")
+        f.write(f"{N_samps} {filename}\n")
         for dk, ck in zip(D, C):
             diff = np.linalg.norm(dk - ck)
-            f.write(f"{dk[0]:.6f} {dk[1]:.6f} {dk[2]:.6f} "
-                    f"{ck[0]:.6f} {ck[1]:.6f} {ck[2]:.6f} "
-                    f"{diff:.6f}\n")
-
-
-if __name__ == "__main__":
-    coords = read_body("./data/Problem3-BodyA.txt")
-    print(coords)
-    coords = read_mesh("./data/Problem3Mesh.sur")
-    print(coords)
-    #coords = read_sample("./data/PA3-A-Debug-SampleReadingsTest.sur")
+            f.write(f"{dk[0]:9.2f} {dk[1]:9.2f} {dk[2]:9.2f} "
+                    f"{ck[0]:9.2f} {ck[1]:9.2f} {ck[2]:9.2f} "
+                    f"{diff:9.2f}\n")

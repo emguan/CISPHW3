@@ -1,9 +1,9 @@
 from typing import List, Tuple
 import numpy as np
-from triangles import Triangle
+from utils.triangles import Triangle
 
 class Mesh:
-    def __init__(self, vertices: List[np.ndarray[float, float, float]], indices: List[Tuple[int, int, int]]):
+    def __init__(self, vertices, indices):
         self.triangles: List[Triangle] = []
         self.build_mesh(vertices, indices)
 

@@ -1,8 +1,10 @@
 import numpy as np
 import math
 
-def euclid_dist(p1, p2):
-    return np.sqrt(np.pow(p1, 2) + np.pow(p2, 2))
+def euclid_dist(p1, p2): 
+    d = p1 - p2
+    x, y, z = d[0],d[1],d[2]
+    return math.sqrt(math.pow(x, 2) + math.pow(y, 2) + math.pow(z, 2))
 
 def find_area(pt1, pt2, pt3) -> float:
 

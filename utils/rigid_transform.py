@@ -75,20 +75,3 @@ def compute_ck(mesh, d_series: np.ndarray, R=None, t=None) -> np.ndarray:
         p = mesh.find_closest_point(s_k) if use_find else mesh.closest_point(s_k)
         C[k] = p
     return C
-
-
-# Inputs you already have:
-# - A_markers, B_markers, A_tip from read_body(...)
-# - A_samps, B_samps, N_s, N_samps from read_sample_readings(...)
-# - mesh from read_mesh(...) -> Mesh(vertices, tri_indices)
-# - compute_d_series(...) from earlier message
-
-# 1) Get d_k in B-frame
-D = compute_d_series(A_markers, B_markers, A_tip, A_samps, B_samps)   # (N_samps, 3)
-
-# 2) Problem 3: F_reg = Identity  =>  s_k = d_k
-# 3) For each s_k, find nearest point on the mesh surface => c_k
-C = compute_ck(mesh, D)  # (N_samps, 3)
-
-# 4) (Optional) Write the PA3 output file
-write_output("pa3-X-Output.txt", D, C)

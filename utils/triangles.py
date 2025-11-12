@@ -1,5 +1,5 @@
 import numpy as np
-from mathpackage import find_area
+from utils.mathpackage import find_area
 
 class Triangle:
     def __init__(self, pt1, pt2, pt3):
