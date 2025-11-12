@@ -20,7 +20,7 @@ class Triangle:
     def barycentric_coords(self, p):
         u = self.find_u(p)
         v = self.find_v(p)
-        w = 1 - u - v  # ensure sum=1 by definition
+        w = 1 - u - v
         return u, v, w
 
     def in_triangle(self, p):
@@ -39,7 +39,6 @@ class Triangle:
             return p
 
         u, v, w = self.barycentric_coords(p)
-        # Project to edges if outside
         if u < 0:
             return self.closest_point_on_edge(p, self.p2, self.p3)
         elif v < 0:
