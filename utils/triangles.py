@@ -8,6 +8,17 @@ import numpy as np
 import math
 
 class Triangle:
+
+    """
+    Input:
+        pt1, pt2, pt3: array-like (3,)
+            Coordinates of the triangle's vertices.
+
+    Output:
+        Constructs a Triangle with computed:
+            - bounding box (lb, ub)
+            - unit normal vector
+    """
     def __init__(self, pt1, pt2, pt3):
         self.a = np.array(pt1, dtype=float)
         self.b = np.array(pt2, dtype=float)
@@ -18,6 +29,10 @@ class Triangle:
 
     """
     Computes unit vector of triangle. 
+
+    Output:
+        normal: numpy array (3,)
+            Unit vector perpendicular to triangle plane.
     """
     def compute_normal(self):
         normal = np.cross(self.b - self.a, self.c - self.a)
@@ -26,6 +41,13 @@ class Triangle:
     
     """
     Builds bounds for later use during box bounding. 
+
+    Output:
+        lb: numpy array (3,)
+            Lower bounds (min x, min y, min z)
+
+        ub: numpy array (3,)
+            Upper bounds (max x, max y, max z)
     """
     def build_bounds(self):
         xs = (self.a[0], self.b[0], self.c[0])
@@ -42,6 +64,14 @@ class Triangle:
 
     Originally used area formula approach. 
     Currently using vertex approach from https://en.wikipedia.org/wiki/Barycentric_coordinate_system#Conversion_between_barycentric_and_Cartesian_coordinates 
+    
+    Input:
+        p: 3D point to convert.
+
+    Output:
+        u, v, w: floats
+            Barycentric coordinates satisfying u + v + w = 1.
+            If u, v, w >= 0 → p_proj lies inside the triangle.
     """
     def barycentric_coords(self, p):
         v0 = self.b - self.a
@@ -65,6 +95,13 @@ class Triangle:
     Projects point (modeled as vector) onto base of triangle.
 
     Uses dot product for projection. 
+
+    Input:
+        p: Point in space.
+
+    Output:
+        p_proj: numpy array (3,)
+            Orthogonal projection of p onto triangle plane.
     """
     def project_to_plane(self, p):
         p = np.array(p, dtype=float)
@@ -74,12 +111,32 @@ class Triangle:
     """
     Checks if a point is within a certain bounding box 
     (defined as bounding box of triangle + some bound.)
+
+    Input:
+        p: Query point.
+
+        margin: float
+            Expansion distance around bounding box.
+
+    Output:
+        True if p lies within [lb - margin, ub + margin], otherwise False.
+        
     """
     def in_box(self, p, margin):
         return np.all(p >= self.lb - margin) and np.all(p <= self.ub + margin)
 
     """
     If closest point is an edge, finds which point.
+
+    Input:
+        p: Query point.
+
+        a, b: numpy arrays (3,)
+            Endpoints of the segment.
+
+    Output:
+        c: numpy array (3,)
+            Closest point on the segment AB.
     """
     def closest_point_on_edge(self, p, a, b):
         ab = b - a
@@ -89,6 +146,13 @@ class Triangle:
 
     """
     Finds closest point on a triangle. 
+
+    Input:
+        p: Query point.
+
+    Output:
+        closest: numpy array (3,)
+            Closest point on the triangle.
     """
     def closest_point(self, p):
         p = np.array(p, dtype=float)

@@ -9,12 +9,33 @@ import numpy as np
 from utils.triangles import Triangle
 
 class Mesh:
+    """
+    Input:
+        vertices: array-like (N_vertices x 3)
+            3D vertex coordinates from the mesh file.
+
+        indices: array-like (N_triangles x 3)
+            Indices defining a triangle.
+
+    Output:
+        Initializes the Mesh object by building a list of Triangle objects.
+    """
     def __init__(self, vertices, indices):
         self.triangles: List[Triangle] = [] # list of triangles
         self.build_mesh(vertices, indices)
 
     """
     Loops through all input vertices + indices and gives a list of Triangles. 
+    
+    Input:
+        vertices: list/array of shape (N_vertices, 3)
+            Vertex positions.
+
+        indices: list/array of shape (N_triangles, 3)
+            Triples of integer indices referring to vertex list rows.
+
+    Returns:
+        self.triangles with Triangle objects.
     """
     def build_mesh(self, vertices, indices):
         vertices = [np.array(v, dtype=float) for v in vertices]
@@ -23,14 +44,33 @@ class Mesh:
             tri = Triangle(vertices[i1], vertices[i2], vertices[i3])
             self.triangles.append(tri)
 
+    """
+    Output:
+        Returns the number of triangles in the mesh.
+    """
     def __len__(self):
         return len(self.triangles)
 
+    """
+    Input:
+        idx: int
+            Index of the triangle.
+
+    Output:
+        Returns the Triangle at the given index.
+    """
     def __getitem__(self, idx):
         return self.triangles[idx]
 
     """
     Linear search for closest point on a triangle to given point. 
+    
+    Input:
+        p: Query point in 3D space.
+
+    Output:
+        closest_point: numpy array (3,)
+            Closest point on mesh surface to p.
     """
     def find_closest_point_linear(self, p):
         p = np.array(p, dtype=float)
@@ -49,6 +89,13 @@ class Mesh:
     
     """
     Bounded box search for closest point on a triangle to given point. 
+    
+    Input:
+        p: Query point.
+
+    Output:
+        closest_point: numpy array (3,)
+            Closest point on the surface.
     """
     def find_closest_point(self, p):
         p = np.array(p, dtype=float)

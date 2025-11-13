@@ -14,7 +14,20 @@ from utils.mesh import Mesh
 from utils.transform_register import compute_d, compute_ck
 
 """
-Full workflow run. 
+Full workflow run.
+
+Inputs:
+    A_file      - Body A definition file.
+    B_file      - Body B definition file.
+    mesh_file   - Surface mesh file.
+    sample_file - Sampled marker readings for body A & B over multiple frames.
+    outfile     - Output filepath for writing d_k and c_k.
+    linear      - Whether to use linear search for surface mapping.
+
+Outputs:
+    Writes an output file containing:
+        - d_k : The transformed tip position in Body B’s frame for each sample.
+        - c_k : The computed point on the mesh surface corresponding to each d_k.
 """
 def main(A_file, B_file, mesh_file, sample_file, outfile, linear = False): 
 
