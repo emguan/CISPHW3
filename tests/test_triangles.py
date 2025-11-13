@@ -134,12 +134,11 @@ def main():
             print(f"✘ {t.__name__}: unexpected error: {e}")
             failed += 1
 
-    print("\nSummary:")
     print(f" Passed: {passed}")
     print(f" Failed: {failed}")
 
     if failed == 0:
-        print("\nAll tests passed! 🎉")
+        print("\nAll Triangle tests passed")
 
 
 if __name__ == "__main__":

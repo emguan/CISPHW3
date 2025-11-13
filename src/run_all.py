@@ -1,5 +1,5 @@
 """
-Automatically runs main.py on all debug files.
+Automatically runs main.py on all debug files. For personal use.
 
 Author: Emily Guan
 """
