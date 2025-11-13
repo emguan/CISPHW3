@@ -1,3 +1,9 @@
+"""
+Automatically runs main.py on all debug files.
+
+Author: Emily Guan
+"""
+
 import subprocess
 
 DEBUG = 'ABCDEF'

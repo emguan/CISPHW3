@@ -1,12 +1,17 @@
+"""
+Reads and writes all files according to PAHW3 descriptions. 
+
+Author: Emily Guan
+"""
+
 import numpy as np
 
-def read_xyz(line):
-    comps = line.split()
-    coord = []
-    for i in comps: 
-        coord.append(float(i))
-    return coord
+"""
+Reads Problem3-Body texts. 
 
+Returns number of LED markers, coordinates of markers, 
+coordinates of tip. 
+"""
 def read_body(filepath):
 
     with open(filepath, 'r') as f:
@@ -24,6 +29,12 @@ def read_body(filepath):
 
     return markers, tip, N_markers, name
 
+"""
+Reads in mesh file. 
+
+Returns number of vertices, coordinates of CT, number of triangles,
+vertex indices for each triangle, and neighbors (unused).
+"""
 def read_mesh(filepath):
     
     with open(filepath, 'r') as f:
@@ -44,6 +55,11 @@ def read_mesh(filepath):
 
     return vertices, N_vertices, N_triangles, triangle_indices, neighbors
 
+"""
+Reads in sample data.
+
+Returns number of LEDs, along with tracker coordinates of LEDs.
+"""
 def read_sample(filepath, N_A, N_B):
     with open(filepath, 'r') as f:
         lines = [line.strip() for line in f if line.strip()]
@@ -69,6 +85,9 @@ def read_sample(filepath, N_A, N_B):
 
     return A_samps, B_samps, N_s, N_samps
 
+"""
+Writes output for PAHW3 in form described in handout.
+"""
 def write_output(filename, D, C):
     N_samps = len(D)
     with open(filename, "w") as f:
@@ -77,4 +96,4 @@ def write_output(filename, D, C):
             diff = np.linalg.norm(dk - ck)
             f.write(f"{dk[0]:9.2f} {dk[1]:9.2f} {dk[2]:9.2f} "
                     f"{ck[0]:9.2f} {ck[1]:9.2f} {ck[2]:9.2f} "
-                    f"{diff:9.2f}\n")
+                    f"{diff:9.3f}\n")
