@@ -97,7 +97,7 @@ class Mesh:
         closest_point: numpy array (3,)
             Closest point on the surface.
     """
-    def find_closest_point(self, p):
+    def find_closest_point_box(self, p):
         p = np.array(p, dtype=float)
         closest_point = None
         bound = float('inf')
@@ -123,3 +123,13 @@ class Mesh:
                 closest_point = candidate
         
         return closest_point
+
+    def find_closest_point(self, points, use_linear=False):
+
+        points = np.asarray(points)
+
+        out = np.zeros_like(points)
+        for i, p in enumerate(points):
+            out[i] = self.find_closest_point_box(p)
+
+        return out

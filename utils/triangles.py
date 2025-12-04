@@ -36,9 +36,11 @@ class Triangle:
     """
     def compute_normal(self):
         normal = np.cross(self.b - self.a, self.c - self.a)
-        normal = normal / np.linalg.norm(normal)
-        return normal
-    
+        n = np.linalg.norm(normal)
+
+        return normal / n
+
+
     """
     Builds bounds for later use during box bounding. 
 
@@ -106,6 +108,8 @@ class Triangle:
     def project_to_plane(self, p):
         p = np.array(p, dtype=float)
         dist = np.dot(p - self.a, self.normal)
+        print("self.normal" ,self.normal, type(self.normal))
+        print("dist:", dist, type(dist))
         return p - dist * self.normal
     
     """

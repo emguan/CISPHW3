@@ -2,7 +2,7 @@
 Execution source file for PA3. 
 
 Examples Usage: 
-python src/main.py --A data/Problem3-BodyA.txt --B data/Problem3-BodyB.txt --mesh data/Problem3Mesh.sur --sample data/PA3-A-Debug-SampleReadingsTest.txt --out output/pa3-A-output.txt
+python src/main.py --A data/Problem4-BodyA.txt --B data/Problem4-BodyB.txt --mesh data/Problem4MeshFile.sur --sample data/PA4-A-Debug-SampleReadingsTest.txt --out output/pa4-A-output.txt
 
 Author: Emily Guan
 """

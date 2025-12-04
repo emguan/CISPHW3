@@ -149,8 +149,8 @@ Writes PAHW3 output file.
 Input:
     filename: str
         Path where the output should be written.
-    D: (N_samples x 3) array
-        d_k values: estimated tip positions in B-frame.
+    S: (N_samples x 3) array
+        s_k values: estimated tip positions in B-frame.
     C: (N_samples x 3) array
         c_k values: corresponding points on the mesh.
 
@@ -159,11 +159,11 @@ Returns:
         Line 1:  <N_samples> <filename>
         Then for each sample k: dk_x dk_y dk_z  ck_x ck_y ck_z  |dk - ck|
 """
-def write_output(filename, D, C):
-    N_samps = len(D)
+def write_output(filename, S, C):
+    N_samps = len(S)
     with open(filename, "w") as f:
         f.write(f"{N_samps} {filename}\n")
-        for dk, ck in zip(D, C):
+        for dk, ck in zip(S, C):
             diff = np.linalg.norm(dk - ck)
             f.write(f"{dk[0]:9.2f} {dk[1]:9.2f} {dk[2]:9.2f} "
                     f"{ck[0]:9.2f} {ck[1]:9.2f} {ck[2]:9.2f} "
