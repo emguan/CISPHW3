@@ -54,7 +54,6 @@ def compute_d(A_body_markers,
 Given a vector, R, t, applies a rigid transform.
 """
 def apply(a, R, t):
-    """Apply rigid transform."""
     return a @ R.T + t
 
 """
@@ -142,9 +141,6 @@ def compute_Freg(mesh, d, threshold=1e-3, max_iter=100, use_linear=False):
         x, *_ = np.linalg.lstsq(A, b, rcond=None)
         u_tilde = x[0:3]
         delta_t = x[3:6]
-
-        # ||u_tilde|| <= rho
-        norm_u = np.linalg.norm(u_tilde)
 
         # ΔR = (I - U)(I + U)^{-1}, U = skew(u_tilde)
         U = skew(u_tilde)
