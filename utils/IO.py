@@ -144,7 +144,7 @@ def read_sample(filepath, N_A, N_B):
     return A_samps, B_samps, N_s, N_samps
 
 """
-Writes PAHW3 output file.
+Writes PAHW4 output file.
 
 Input:
     filename: str
@@ -165,10 +165,6 @@ def write_output(filename, S, C):
         f.write(f"{N_samps} {filename}\n")
         for sk, ck in zip(S, C):
             diff = np.linalg.norm(sk - ck)
-
-            # Force tiny values to 0.000
-            if diff < 0.0005:
-                diff = 0.0
 
             f.write(f"{sk[0]:9.2f} {sk[1]:9.2f} {sk[2]:9.2f} "
                     f"{ck[0]:9.2f} {ck[1]:9.2f} {ck[2]:9.2f} "

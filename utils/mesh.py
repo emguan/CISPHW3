@@ -1,14 +1,14 @@
+"""
+Mesh Object File.
+
+Author: Emily Guan
+"""
+
 from typing import List
 import numpy as np
 from utils.triangles import Triangle
 
 class Mesh:
-    """
-    Mesh with:
-      - Triangle list
-      - Per-vertex normals
-      - Correct interpolated normals via barycentric coords from Triangle.closest_point
-    """
     def __init__(self, vertices, indices):
         self.vertices = np.asarray(vertices, float)
         self.indices = np.asarray(indices, int)
@@ -17,7 +17,6 @@ class Mesh:
         self.tri_indices: List[tuple] = []
         self.build_mesh()
 
-        # compute per-vertex normals (smoothed)
         self.vertex_normals = np.zeros_like(self.vertices)
         self._compute_vertex_normals()
 
@@ -27,10 +26,11 @@ class Mesh:
             self.triangles.append(tri)
             self.tri_indices.append((i1, i2, i3))
 
+    """
+    Smooth normals = average of adjacent face normals.
+    """
     def _compute_vertex_normals(self):
-        """
-        Smooth normals = average of adjacent face normals.
-        """
+        
         self.vertex_normals[:] = 0.0
         for (i1, i2, i3), tri in zip(self.tri_indices, self.triangles):
             n = tri.normal
@@ -51,13 +51,13 @@ class Mesh:
     def __getitem__(self, idx):
         return self.triangles[idx]
 
-    # ---------------------------------------------------------
-    # NORMAL INTERPOLATION (using correct barycentric coords)
-    # ---------------------------------------------------------
+    """
+    Barycentric Interpolation. 
+
+    bary = (u, v, w) from Triangle.closest_point
+    """
     def _interpolated_normal(self, tri_idx, bary):
-        """
-        bary = (u, v, w) from Triangle.closest_point
-        """
+        
         u, v, w = bary
         i1, i2, i3 = self.tri_indices[tri_idx]
 
@@ -69,13 +69,12 @@ class Mesh:
         norm = np.linalg.norm(n)
         return n / norm
 
-    # ---------------------------------------------------------
-    # CLOSEST POINT (LINEAR SEARCH)
-    # ---------------------------------------------------------
-    def find_closest_point_linear(self, p):
-        """
+    """
+    Given a point, returns the closest point on mesh using linear search.
         Returns (closest_point, interpolated_normal)
-        """
+    """
+    def find_closest_point_linear(self, p):
+        
         p = np.asarray(p, float)
         min_dist = float('inf')
         best_cp = None
@@ -94,20 +93,17 @@ class Mesh:
         n = self._interpolated_normal(best_idx, best_bary)
         return best_cp, n
 
-    # ---------------------------------------------------------
-    # CLOSEST POINT (BOUNDING BOX ACCELERATION)
-    # ---------------------------------------------------------
-    def find_closest_point_box(self, p):
-        """
+    """
+    Given a point, returns the closest point on mesh using bounding box search.
         Returns (closest_point, interpolated_normal)
-        """
+    """
+    def find_closest_point_box(self, p):
         p = np.asarray(p, float)
         bound = float('inf')
         best_cp = None
         best_bary = None
         best_idx = -1
 
-        # quick initial bound using first few triangles
         for idx, tri in enumerate(self.triangles[:6]):
             cp, bary = tri.closest_point(p)
             d = np.linalg.norm(cp - p)
@@ -117,7 +113,6 @@ class Mesh:
                 best_bary = bary
                 best_idx = idx
 
-        # full pass with bounding-box pruning
         for idx, tri in enumerate(self.triangles):
             if not tri.in_box(p, bound):
                 continue
@@ -132,9 +127,9 @@ class Mesh:
         n = self._interpolated_normal(best_idx, best_bary)
         return best_cp, n
 
-    # ---------------------------------------------------------
-    # VECTORIZED INTERFACE
-    # ---------------------------------------------------------
+    """
+    Given a point, returns the closest point on mesh using linear search or bounding box, up to user.
+    """
     def find_closest_point(self, points, use_linear=False, return_normals=False):
         points = np.asarray(points, float)
         N = points.shape[0]
