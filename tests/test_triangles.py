@@ -99,13 +99,13 @@ def main():
     for t in tests:
         try:
             t()
-            print(f"✔ {t.__name__}")
+            print(f"Passed {t.__name__}")
             passed += 1
         except AssertionError as e:
-            print(f"✘ {t.__name__}: {e}")
+            print(f"Failed {t.__name__}: {e}")
             failed += 1
         except Exception as e:
-            print(f"✘ {t.__name__}: unexpected error → {e}")
+            print(f"Failed {t.__name__}: unexpected error → {e}")
             failed += 1
 
     print(f"\nPassed: {passed}")

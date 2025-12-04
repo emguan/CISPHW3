@@ -15,9 +15,10 @@ Before running, make sure you have your python path set to curdir.
 Our code has two executables: one for single data files (main.py), and another to run through all debug files (run_all.py).
 
 Our recommendation for testing is to run ./src/main.py.
-To run using linear search, add the --linear flag. Else, you can run the file like this: 
+To run using linear search, add the --linear flag (default False). To adjust threshold used --threshold (default 1e-3). To adjust max iterations, use --max_iter (default 100). Else, you can run the file like this: 
 
-            python3 src/main.py --A data/Problem3-BodyA.txt --B data/Problem3-BodyB.txt --mesh data/Problem3Mesh.sur --sample data/PA3-A-Debug-SampleReadingsTest.txt --out output/pa3-A-output.txt
+            python src/main.py --A data/Problem4-BodyA.txt --B data/Problem4-BodyB.txt --mesh data/Problem4MeshFile.sur --sample data/PA4-A-Debug-SampleReadingsTest.txt --out output/pa4-A-output.txt
+
 
 To generate outputs for all files, use ./src/run_all.py.
             python3 src/run_all.py

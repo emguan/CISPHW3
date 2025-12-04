@@ -105,7 +105,7 @@ def test_compute_ck_identity_reg():
         [4,5,6]
     ])
 
-    (c, s) = compute_ck(mesh, d)
+    (c, s) = compute_ck(mesh, d, max_iter=50, threshold=1e-2)
 
     # s = R*d + t = d
     assert almost_equal(s, d), "s_k should equal d_k when registration=identity"
@@ -131,13 +131,13 @@ def main():
     for test in tests:
         try:
             test()
-            print(f"✔ {test.__name__}")
+            print(f"Passed {test.__name__}")
             passed += 1
         except AssertionError as e:
-            print(f"✘ {test.__name__}: {e}")
+            print(f"Failed {test.__name__}: {e}")
             failed += 1
         except Exception as e:
-            print(f"✘ {test.__name__}: unexpected error → {e}")
+            print(f"Failed {test.__name__}: unexpected error → {e}")
             failed += 1
 
     print(f"\nPassed: {passed}")

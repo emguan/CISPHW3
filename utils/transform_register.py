@@ -163,9 +163,9 @@ def compute_Freg(mesh, d, threshold=1e-3, max_iter=100, use_linear=False):
     return R, t
 
 
-def compute_ck(mesh, d, linear=False):
+def compute_ck(mesh, d, threshold, max_iter, linear=False):
 
-    R, t = compute_Freg(mesh, d)
+    R, t = compute_Freg(mesh, d, threshold=threshold, max_iter=max_iter, use_linear=linear)
 
     s = apply(d, R, t)
 

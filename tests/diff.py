@@ -31,3 +31,10 @@ for dataset in ['A', 'B', 'C', 'D', 'E', 'F']:
         f'data/PA4-{dataset}-Debug-Output.txt')
     print(f"{dataset} & {cmean:.4f} & {cmax:.4f}& {smean:.4f} & {smax:.4f}& {emean:.4f} & {emax:.4f}")
     print(f"{dataset} & {cmean:.4f} & {cmax:.4f}& {smean:.4f} & {smax:.4f}& {emean:.4f} & {emax:.4f}")
+
+for dataset in ['G','H', 'J', 'K']:
+    file = f'output/PA4-{dataset}-output.txt'
+    data = np.loadtxt(file, skiprows=1)
+    diff = data[:,6]
+    avgdiff = np.mean(diff)
+    print(f"{dataset} & {avgdiff}")
