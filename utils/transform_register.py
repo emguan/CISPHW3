@@ -69,40 +69,110 @@ def skew(p):
     ])
 
 
-def compute_Freg(mesh, d, threshold=0.05, max_iter=50):
+def compute_Freg(mesh, d, threshold=1e-3, max_iter=100, rho=0.05, use_linear=False):
     """
-    Estimate F_reg such that c_k ≈ F_reg * d_k
-    where d_k are sample points expressed in frame B.
+    Constrained linearized least-squares registration (Gueziec et al. 1998).
+
+    Estimate F_reg such that c_k ≈ F_reg * d_k, where d_k are sample
+    points expressed in frame B (shape N x 3).
 
     mesh must implement:
-        mesh.find_closest_point(points) → (N x 3) closest points
+        mesh.find_closest_point(points, use_linear=False, return_normals=True)
+            → (closest_points (N x 3), normals (N x 3))
+
+    Parameters
+    ----------
+    mesh : Mesh
+    d : (N,3) array
+        Sample points in frame B.
+    threshold : float
+        Termination threshold on residual (epsilon).
+    max_iter : int
+        Maximum number of Gauss–Newton iterations.
+    rho : float
+        Upper bound on ||u_tilde|| (small rotation update, in radians).
+    use_linear : bool
+        If True, use linear closest-point search instead of box search.
+
+    Returns
+    -------
+    R : (3,3) array
+    t : (3,)   array
     """
 
-    # Initial guess (per Problem 3: identity, or passed-in initial)
+    # Initial guess (Problem 3: identity)
     R = np.eye(3)
     t = np.zeros(3)
 
+    N = d.shape[0]
+
     for it in range(max_iter):
+        print("iteration ", it)
+        # Step 1: transformed sample points p_i~ = R d_i + t
+        p = apply(d, R, t)  # (N,3)
 
-        # Step 1: apply transform to get sample points s_k
-        s = apply(d, R, t)        # (N x 3)
+        # Closest points on mesh and associated normals v_i
+        c, normals = mesh.find_closest_point(p,
+                                             return_normals=True)
 
-        # Step 2: closest points on mesh
-        c = mesh.find_closest_point(s)
+        # Build linearized least squares system A x ≈ b
+        # where x = [u_tilde (3,); delta_t (3,)]
+        A = np.zeros((3 * N, 6))
+        b = np.zeros(3 * N)
 
-        # Step 3: compute new transform mapping d → c
-        R_delta, t_delta = aruns_method(d, c)
+        row = 0
+        for i in range(N):
+            pi = p[i]
+            ci = c[i]
+            vi = normals[i]
 
-        # Step 4: update global transform
-        R = R_delta @ R
-        t = R_delta @ t + t_delta
+            # ensure vi is unit length (defensive)
+            nrm = np.linalg.norm(vi)
+            if nrm > 0:
+                vi = vi / nrm
 
-        # Step 5: check convergence
-        movement = np.linalg.norm(t_delta) + np.linalg.norm(R_delta - np.eye(3))
-        if movement < threshold:
+            Pi = skew(pi)        # 3x3
+            Vi = skew(vi)        # 3x3
+
+            Ai = np.hstack((2.0 * Vi @ Pi, Vi))  # 3x6
+            bi = Vi @ (ci - pi)                  # 3,
+
+            A[row:row+3, :] = Ai
+            b[row:row+3] = bi
+            row += 3
+
+        # Solve least squares: A x ≈ b
+        x, *_ = np.linalg.lstsq(A, b, rcond=None)
+        u_tilde = x[0:3]
+        delta_t = x[3:6]
+
+        # Enforce ||u_tilde|| <= rho
+        norm_u = np.linalg.norm(u_tilde)
+        if norm_u > rho:
+            u_tilde = (rho / norm_u) * u_tilde
+
+        # Cayley map: ΔR = (I - U)(I + U)^{-1}, U = skew(u_tilde)
+        U = skew(u_tilde)
+        I = np.eye(3)
+        DeltaR = (I - U) @ np.linalg.inv(I + U)
+
+        # Update global transform
+        R = DeltaR @ R
+        t = DeltaR @ t + delta_t
+
+
+        # Compute epsilon = average residual in LS system
+        x_full = np.concatenate([u_tilde, delta_t])
+        residual = A @ x_full - b
+        eps = np.linalg.norm(residual) / np.sqrt(N)
+        print(eps)
+
+        # Termination
+        if eps < threshold:
             break
 
     return R, t
+
 
 def compute_ck(mesh, d, linear=False):
     """
@@ -117,4 +187,4 @@ def compute_ck(mesh, d, linear=False):
     s = apply(d, R, t)
 
     # Return closest points on mesh
-    return mesh.find_closest_point(s, use_linear=linear)
+    return mesh.find_closest_point(s), s

@@ -163,8 +163,13 @@ def write_output(filename, S, C):
     N_samps = len(S)
     with open(filename, "w") as f:
         f.write(f"{N_samps} {filename}\n")
-        for dk, ck in zip(S, C):
-            diff = np.linalg.norm(dk - ck)
-            f.write(f"{dk[0]:9.2f} {dk[1]:9.2f} {dk[2]:9.2f} "
+        for sk, ck in zip(S, C):
+            diff = np.linalg.norm(sk - ck)
+
+            # Force tiny values to 0.000
+            if diff < 0.0005:
+                diff = 0.0
+
+            f.write(f"{sk[0]:9.2f} {sk[1]:9.2f} {sk[2]:9.2f} "
                     f"{ck[0]:9.2f} {ck[1]:9.2f} {ck[2]:9.2f} "
                     f"{diff:9.3f}\n")

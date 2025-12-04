@@ -108,8 +108,6 @@ class Triangle:
     def project_to_plane(self, p):
         p = np.array(p, dtype=float)
         dist = np.dot(p - self.a, self.normal)
-        print("self.normal" ,self.normal, type(self.normal))
-        print("dist:", dist, type(dist))
         return p - dist * self.normal
     
     """
@@ -159,25 +157,38 @@ class Triangle:
             Closest point on the triangle.
     """
     def closest_point(self, p):
-        p = np.array(p, dtype=float)
+        p = np.array(p, float)
 
-        # project p onto triangle
+        # project to plane
         p_proj = self.project_to_plane(p)
-
-        # barycentric coords
         u, v, w = self.barycentric_coords(p_proj)
 
-        # if inside, return proejction
-        if (u >= 0) and (v >= 0) and (w >= 0):
-            return p_proj
+        # case 1: inside triangle
+        if u >= 0 and v >= 0 and w >= 0:
+            return p_proj, (u, v, w)
 
-        # if outside, find edge closest point on all edges
+        # case 2: closest on edges
+        # AB
         c1 = self.closest_point_on_edge(p, self.a, self.b)
+        d1 = np.linalg.norm(p - c1)
+        t1 = np.dot(c1 - self.a, self.b - self.a) / np.dot(self.b - self.a, self.b - self.a)
+        bc1 = (1 - t1, t1, 0)
+
+        # BC
         c2 = self.closest_point_on_edge(p, self.b, self.c)
+        d2 = np.linalg.norm(p - c2)
+        t2 = np.dot(c2 - self.b, self.c - self.b) / np.dot(self.c - self.b, self.c - self.b)
+        bc2 = (0, 1 - t2, t2)
+
+        # CA
         c3 = self.closest_point_on_edge(p, self.c, self.a)
+        d3 = np.linalg.norm(p - c3)
+        t3 = np.dot(c3 - self.c, self.a - self.c) / np.dot(self.a - self.c, self.a - self.c)
+        bc3 = (t3, 0, 1 - t3)
 
-        # choose projection closest to original p
-        candidates = [c1, c2, c3]
-        dists = [np.linalg.norm(p - c) for c in candidates]
-
-        return candidates[np.argmin(dists)]
+        # choose closest
+        if d1 <= d2 and d1 <= d3:
+            return c1, bc1
+        if d2 <= d1 and d2 <= d3:
+            return c2, bc2
+        return c3, bc3

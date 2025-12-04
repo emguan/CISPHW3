@@ -1,135 +1,158 @@
-"""
-Custom class for Mesh object and all corresponding helper functions.
-
-Author: Emily Guan
-"""
-
-from typing import List, Tuple
+from typing import List
 import numpy as np
 from utils.triangles import Triangle
 
 class Mesh:
     """
-    Input:
-        vertices: array-like (N_vertices x 3)
-            3D vertex coordinates from the mesh file.
-
-        indices: array-like (N_triangles x 3)
-            Indices defining a triangle.
-
-    Output:
-        Initializes the Mesh object by building a list of Triangle objects.
+    Mesh with:
+      - Triangle list
+      - Per-vertex normals
+      - Correct interpolated normals via barycentric coords from Triangle.closest_point
     """
     def __init__(self, vertices, indices):
-        self.triangles: List[Triangle] = [] # list of triangles
-        self.build_mesh(vertices, indices)
+        self.vertices = np.asarray(vertices, float)
+        self.indices = np.asarray(indices, int)
 
-    """
-    Loops through all input vertices + indices and gives a list of Triangles. 
-    
-    Input:
-        vertices: list/array of shape (N_vertices, 3)
-            Vertex positions.
+        self.triangles: List[Triangle] = []
+        self.tri_indices: List[tuple] = []
+        self.build_mesh()
 
-        indices: list/array of shape (N_triangles, 3)
-            Triples of integer indices referring to vertex list rows.
+        # compute per-vertex normals (smoothed)
+        self.vertex_normals = np.zeros_like(self.vertices)
+        self._compute_vertex_normals()
 
-    Returns:
-        self.triangles with Triangle objects.
-    """
-    def build_mesh(self, vertices, indices):
-        vertices = [np.array(v, dtype=float) for v in vertices]
-
-        for (i1, i2, i3) in indices:
-            tri = Triangle(vertices[i1], vertices[i2], vertices[i3])
+    def build_mesh(self):
+        for (i1, i2, i3) in self.indices:
+            tri = Triangle(self.vertices[i1], self.vertices[i2], self.vertices[i3])
             self.triangles.append(tri)
+            self.tri_indices.append((i1, i2, i3))
 
-    """
-    Output:
-        Returns the number of triangles in the mesh.
-    """
+    def _compute_vertex_normals(self):
+        """
+        Smooth normals = average of adjacent face normals.
+        """
+        self.vertex_normals[:] = 0.0
+        for (i1, i2, i3), tri in zip(self.tri_indices, self.triangles):
+            n = tri.normal
+            self.vertex_normals[i1] += n
+            self.vertex_normals[i2] += n
+            self.vertex_normals[i3] += n
+
+        # normalize
+        for i in range(len(self.vertex_normals)):
+            n = self.vertex_normals[i]
+            norm = np.linalg.norm(n)
+            if norm > 1e-12:
+                self.vertex_normals[i] = n / norm
+
     def __len__(self):
         return len(self.triangles)
 
-    """
-    Input:
-        idx: int
-            Index of the triangle.
-
-    Output:
-        Returns the Triangle at the given index.
-    """
     def __getitem__(self, idx):
         return self.triangles[idx]
 
-    """
-    Linear search for closest point on a triangle to given point. 
-    
-    Input:
-        p: Query point in 3D space.
+    # ---------------------------------------------------------
+    # NORMAL INTERPOLATION (using correct barycentric coords)
+    # ---------------------------------------------------------
+    def _interpolated_normal(self, tri_idx, bary):
+        """
+        bary = (u, v, w) from Triangle.closest_point
+        """
+        u, v, w = bary
+        i1, i2, i3 = self.tri_indices[tri_idx]
 
-    Output:
-        closest_point: numpy array (3,)
-            Closest point on mesh surface to p.
-    """
+        n = (
+            u * self.vertex_normals[i1] +
+            v * self.vertex_normals[i2] +
+            w * self.vertex_normals[i3]
+        )
+        norm = np.linalg.norm(n)
+        return n / norm
+
+    # ---------------------------------------------------------
+    # CLOSEST POINT (LINEAR SEARCH)
+    # ---------------------------------------------------------
     def find_closest_point_linear(self, p):
-        p = np.array(p, dtype=float)
-        closest_point = None
+        """
+        Returns (closest_point, interpolated_normal)
+        """
+        p = np.asarray(p, float)
         min_dist = float('inf')
+        best_cp = None
+        best_bary = None
+        best_idx = -1
 
-        # choose candiate with lowest distance
-        for tri in self.triangles:
-            candidate = tri.closest_point(p)
-            dist = np.linalg.norm(candidate - p)
+        for idx, tri in enumerate(self.triangles):
+            cp, bary = tri.closest_point(p)
+            dist = np.linalg.norm(cp - p)
             if dist < min_dist:
                 min_dist = dist
-                closest_point = candidate
-        
-        return closest_point
-    
-    """
-    Bounded box search for closest point on a triangle to given point. 
-    
-    Input:
-        p: Query point.
+                best_cp = cp
+                best_bary = bary
+                best_idx = idx
 
-    Output:
-        closest_point: numpy array (3,)
-            Closest point on the surface.
-    """
+        n = self._interpolated_normal(best_idx, best_bary)
+        return best_cp, n
+
+    # ---------------------------------------------------------
+    # CLOSEST POINT (BOUNDING BOX ACCELERATION)
+    # ---------------------------------------------------------
     def find_closest_point_box(self, p):
-        p = np.array(p, dtype=float)
-        closest_point = None
+        """
+        Returns (closest_point, interpolated_normal)
+        """
+        p = np.asarray(p, float)
         bound = float('inf')
+        best_cp = None
+        best_bary = None
+        best_idx = -1
 
-        # random starting point
-        for tri in self.triangles[:6]:
-            cp = tri.closest_point(p)
+        # quick initial bound using first few triangles
+        for idx, tri in enumerate(self.triangles[:6]):
+            cp, bary = tri.closest_point(p)
             d = np.linalg.norm(cp - p)
             if d < bound:
                 bound = d
-                closest_point = cp
+                best_cp = cp
+                best_bary = bary
+                best_idx = idx
 
-        # if in a smaller box, replace
-        for tri in self.triangles:
+        # full pass with bounding-box pruning
+        for idx, tri in enumerate(self.triangles):
             if not tri.in_box(p, bound):
                 continue
+            cp, bary = tri.closest_point(p)
+            d = np.linalg.norm(cp - p)
+            if d < bound:
+                bound = d
+                best_cp = cp
+                best_bary = bary
+                best_idx = idx
 
-            candidate = tri.closest_point(p)
-            dist = np.linalg.norm(candidate - p)
+        n = self._interpolated_normal(best_idx, best_bary)
+        return best_cp, n
 
-            if dist < bound:
-                bound = dist
-                closest_point = candidate
-        
-        return closest_point
+    # ---------------------------------------------------------
+    # VECTORIZED INTERFACE
+    # ---------------------------------------------------------
+    def find_closest_point(self, points, use_linear=False, return_normals=False):
+        points = np.asarray(points, float)
+        N = points.shape[0]
+        out_points = np.zeros_like(points)
 
-    def find_closest_point(self, points, use_linear=False):
+        if return_normals:
+            out_normals = np.zeros_like(points)
 
-        points = np.asarray(points)
-
-        out = np.zeros_like(points)
         for i, p in enumerate(points):
-            out[i] = self.find_closest_point_box(p)
+            if use_linear:
+                cp, n = self.find_closest_point_linear(p)
+            else:
+                cp, n = self.find_closest_point_box(p)
 
-        return out
+            out_points[i] = cp
+            if return_normals:
+                out_normals[i] = n
+
+        if return_normals:
+            return out_points, out_normals
+        return out_points
