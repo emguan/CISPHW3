@@ -96,7 +96,7 @@ Returns
 R : (3,3) array
 t : (3,)   array
 """
-def compute_Freg(mesh, d, threshold=1e-3, max_iter=100, rho=0.05, use_linear=False):
+def compute_Freg(mesh, d, threshold=1e-3, max_iter=100, use_linear=False):
 
 
     # Initial guess
@@ -145,8 +145,6 @@ def compute_Freg(mesh, d, threshold=1e-3, max_iter=100, rho=0.05, use_linear=Fal
 
         # ||u_tilde|| <= rho
         norm_u = np.linalg.norm(u_tilde)
-        if norm_u > rho:
-            u_tilde = (rho / norm_u) * u_tilde
 
         # ΔR = (I - U)(I + U)^{-1}, U = skew(u_tilde)
         U = skew(u_tilde)

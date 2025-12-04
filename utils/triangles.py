@@ -9,16 +9,7 @@ import math
 
 class Triangle:
 
-    """
-    Input:
-        pt1, pt2, pt3: array-like (3,)
-            Coordinates of the triangle's vertices.
 
-    Output:
-        Constructs a Triangle with computed:
-            - bounding box (lb, ub)
-            - unit normal vector
-    """
     def __init__(self, pt1, pt2, pt3):
         self.a = np.array(pt1, dtype=float)
         self.b = np.array(pt2, dtype=float)
